@@ -1,0 +1,11 @@
+.PhoneInputInput {
+    /* background: red !important; */
+    padding: 12px 30px !important;
+    border-radius: 8px !important;
+    border: 1px solid !important;
+    margin-bottom: 6px !important;
+  }
+  .PhoneInputInput:focus {
+    outline: none !important;
+  }
+  
