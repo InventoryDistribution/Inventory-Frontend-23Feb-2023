@@ -111,6 +111,11 @@ const ProductionOrderList = () => {
   const [poLinesArray1, setPoLinesArray1] = useState("");
   const [id, setId] = useState("");
   const [lineNum, setLineNum] = useState("");
+
+  // Hide grid box item after selection
+  const [gridBoxValue, setGridBoxValue] = useState([1]);
+  const [isGridBoxOpened, setIsGridBoxOpened] = useState(false);
+
   useEffect(() => {
     axios
       .get("http://localhost:9004/api/getPRDSeries")
@@ -197,10 +202,14 @@ const ProductionOrderList = () => {
     axios
       .post("http://localhost:9004/api/ProductionOrderFilters")
       .then(function (response) {
-        const newData1 = response.data.body;
-        const newData2 = newData1;
-        setHeaderList1(newData2);
+        let newData1 = response.data.body;
+        let newData2 = newData1;
         //console.log("Whs API Result", NewwhsDataAPIList);
+        newData2 = newData2.map(element => {
+          const postDate = element.postDate.split(' ')[0]; // split string at space and get first element
+          return { ...element, postDate }; // return new object with updated postDate field
+        });
+        setHeaderList(newData2);
       })
       .catch(function (error) {
         console.log("Inside Catch Block PRD Filter", error);
@@ -817,11 +826,11 @@ const ProductionOrderList = () => {
   }
 
   //const isGridBoxOpened = {};
-  function isGridBoxOpened() {
-    if (whsid === 0) {
-    }
-    //setEvent1(e.component);
-  }
+  // function isGridBoxOpened() {
+  //   if (whsid === 0) {
+  //   }
+  //   //setEvent1(e.component);
+  // }
   const getFormattedDate = useCallback(() => {
     // console.log("getFormattedDate", getFormattedDate);
     return formatDate(fromDateOne, "longDate");
@@ -834,6 +843,30 @@ const ProductionOrderList = () => {
   //console.log("setParsedDate", setParsedDate);
   const orderDateFormat = { year: "2-digit", month: "2-digit", day: "2-digit" };
   // console.log("fromDateOne", fromDateOne);
+
+
+
+   // Handling Grid box open close and its values:::
+   const dataGridOnSelectionChanged = (e) => {
+    console.log("This is the row value =>>>" + e.selectedRowKeys)
+    setGridBoxValue(e.selectedRowKeys);
+    setWhsid(e.selectedRowsData[0].whsCode);
+    console.log(whsid);
+    setIsGridBoxOpened(false);
+  }
+  const syncDataGridSelection = (e)=> {
+    setGridBoxValue(e.value);
+  }
+  function gridBoxDisplayExpr(item) {
+    return item && `${item.CompanyName} <${item.Phone}>`;
+  }
+  const onGridBoxOpened = (e)=> {
+    if (e.name === 'opened') {
+      setIsGridBoxOpened(e.value);
+    }
+  }
+
+
 
   return headerList[0] === undefined ? (
     <DashboardLayout>
@@ -1199,7 +1232,8 @@ const ProductionOrderList = () => {
                       </Validator>
                     </TextBox>
                     <br />
-                    <DropDownBox
+
+                    {/* <DropDownBox
                       label="Warehouse"
                       labelMode="floating"
                       dataSource={whsAPIList}
@@ -1229,7 +1263,47 @@ const ProductionOrderList = () => {
                         <Paging enabled={true} pageSize={10} />
                         <FilterRow visible={true} />
                       </DataGrid>
+                    </DropDownBox> */}
+                    <DropDownBox
+                      label="Warehouse"
+                      labelMode="floating"
+                      value={whsid}
+                      opened={isGridBoxOpened}
+                      valueExpr="whsCode"
+                      //deferRendering={false}
+                      displayExpr="whsCode"
+                      //showClearButton={true}
+                      dataSource={whsAPIList}
+                      wordWrapEnabled={true}
+                      selectByClick={true}
+                      onValueChanged={syncDataGridSelection}
+                      onOptionChanged={onGridBoxOpened}
+                    >
+                      <DataGrid
+                        dataSource={whsAPIList}
+                        columns={gridColumnsWhs}
+                        // focusedRowEnabled={true}
+                        hoverStateEnabled={true}
+                        height="100%"
+                        selectedRowKeys={whsid}
+                        onSelectionChanged={dataGridOnSelectionChanged}
+                        // onSelectionChanged={(e) => {
+                        //   dataGridOnSelectionChanged
+                        //   // setIsGridBoxOpened(false);
+                        //   // setWhsid(e.selectedRowsData[0].whsCode);
+                        //   // console.log(e.selectedRowsData[0].whsCode);
+                        //   // //const opened = { isGridBoxOpened: false };
+                        // }}
+
+                      >
+                        {" "}
+                        <Selection mode="single" />
+                        <Scrolling mode="virtual" />
+                        <Paging enabled={true} pageSize={10} />
+                        <FilterRow visible={true} />
+                      </DataGrid>
                     </DropDownBox>
+
                     <br />
                   </GroupItem>
                 </Form>
